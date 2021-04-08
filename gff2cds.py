@@ -4,7 +4,13 @@
 ###Imports###
 import sys
 import pandas as pd
-
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.Alphabet import generic_dna
+import numpy as np
+import textwrap
+import re
+pd.options.mode.chained_assignment = None # turn off warning for chained assignment
 
 ###Definitions###
 
@@ -25,16 +31,15 @@ def get_scaff_names(file): # get scaffold names in fasta file
         names.append(seq.id)
     return names
 
-def extract_cds(scaff_name, start, stop, product, scaff_index, outfile) # extract sequences corresponding to gff/gofeat annotations and write them to a new fasta file
-    whole_scaff = scaff_index.get_raw(row['ID'].astype('string')).decode()
-	clean_scaff = re.sub("[^A-Z]+", "", whole_scaff)
-    
+def extract_cds(scaff_name, start, stop, product, scaff_index, outfile): # extract sequences corresponding to gff/gofeat annotations and write them to a new fasta file
+    whole_scaff = scaff_index.get_raw(str(scaff_name)).decode()
+    clean_scaff = re.sub("[^A-Z]+", "", whole_scaff)   
     out = open(outfile, 'a')
-	new_name = scaff_name + '_' + row['Product'].astype('string')
-	new_scaff = clean_scaff[row['Start'].astype('int64')-1:row['Stop'].astype('int64')-1]
-	new_scaff = textwrap.fill(new_scaff, width = 60)
-	out.writelines('>' + scaff_name + '\n' + new_scaff + '\n\n')
-	out.close()
+    new_name = str(scaff_name) + '_' + str(product)
+    new_scaff = clean_scaff[int(start)-1:int(stop)-1]
+    new_scaff = textwrap.fill(new_scaff, width = 60)
+    out.writelines('>' + new_name + '\n' + new_scaff + '\n')
+    out.close()
 
 ###Main###
 gff = pd.read_table(gff_file, header = None, sep = '\t')
@@ -50,7 +55,7 @@ gff_squeeze['Length'] = gff_squeeze['Stop'] - gff_squeeze['Start']
 gofeat = pd.read_table(gofeat_file, sep = ';')
 gofeat_squeeze = gofeat[['Locus tag', 'Length', 'Product']]
 
-db_list = [merge_annotations(x, y, gff_squeeze) for x in gofeat_squeeze['Locus tag'] for y in gofeat_squeeze['Product']] # create list of dfs - 1 df per id
+db_list = [merge_annotations(x, y, gff_squeeze) for x,y in zip(gofeat_squeeze['Locus tag'], gofeat_squeeze['Product'])] # create list of dfs - 1 df per id
 db_df = pd.concat(db_list) # combine to single df
 db_df.to_csv('annotations.db', sep = '\t')
 
@@ -58,5 +63,10 @@ db_df.to_csv('annotations.db', sep = '\t')
 scaff_names = get_scaff_names(scaff_file)
 scaff_index = SeqIO.index(scaff_file, 'fasta')
 
-for row in len(db_df):
-    extract_cds(row, outfile)
+outfile = 'cds.fasta'
+for row in range(0, len(db_df)):
+    try:
+        extract_cds(db_df.loc[row, 'Scaffold'], db_df.loc[row, 'Start'], db_df.loc[row, 'Stop'], db_df.loc[row, 'Product'], scaff_index, outfile)
+    except:
+        print('Error, scaffold ' + str(db_df.loc[row, 'Scaffold']))
+        continue
