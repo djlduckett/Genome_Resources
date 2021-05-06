@@ -29,7 +29,6 @@ def get_header_lines(vcf_file):
 ###Main###
 header_lines = get_header_lines(vcf_file) # get vcf header lines with '##'
 
-
 f = open(chr_file, 'r')
 chr_list = f.readlines()
 chr_list = [x.strip('\n') for x in chr_list]
@@ -55,4 +54,4 @@ print("Subsampled SNPs: %s" % single_snps)
 
 with open(out_file, 'a') as out:
     out.write(''.join(header_lines)) # write vcf header lines
-    single_snp_df.to_csv(out, sep = '\t', header = True, index = False)
+    snp_mod_df.to_csv(out, sep = '\t', header = True, index = False)
