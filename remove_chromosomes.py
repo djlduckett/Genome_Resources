@@ -38,6 +38,7 @@ total_snps = len(vcf_df.index) # get starting number of snps
 print("Total SNPs: %s" % total_snps)
 
 chrom = vcf_df['#CHROM'] # get chromosomes
+chrom = chrom.astype('str')
 
 snp_dict = collections.defaultdict(list)
 for key, value in zip(chrom.values, chrom.index): # create dictionary with locus ids as keys and indices as values
