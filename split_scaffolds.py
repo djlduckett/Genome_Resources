@@ -40,7 +40,8 @@ def split_scaff(adapter_line, outfile):
 	coords[len(coords) - 1] += 1
 	coords_pairs = np.array_split(coords, len(coords) / 2)
 	whole_scaff = scaff_index.get_raw(scaff_name).decode()
-	clean_scaff = re.sub("[^A-Z]+", "", whole_scaff)
+	clean_scaff = re.sub("^.+\n", "", whole_scaff) # get rid of scaffold name
+	clean_scaff = re.sub("\n", "", clean_scaff) # get rid of line breaks
 	out2 = open(outfile, 'a')
 	for i in range(0,num_pairs):
 		new_name = scaff_name + '_' + str(i)
