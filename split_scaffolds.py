@@ -7,7 +7,6 @@ import re
 import sys
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 import numpy as np
 import textwrap
 
