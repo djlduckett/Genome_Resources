@@ -7,8 +7,7 @@ import re
 import sys
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
-import numpy
+import random
 
 
 ###Definitions###
@@ -42,18 +41,31 @@ seq_dict = dict(zip(seq_names, seqs)) # create dictionary with sequence names as
 
 percent_N = [N / s for N, s in zip(Ns, seq_lengths)] # calculate percent N for each sequence
 N_above_ten = [ind for ind,val in enumerate(percent_N) if val > 0.1] # get indices of sequences with a large %N
+#print(N_above_ten)
 
 too_long = [ind for ind,val in enumerate(seq_lengths) if val > 1000] # get indices of sequences longer than 1000bp
+#print(too_long)
 
-inds_to_remove = N_above_ten.append(too_long) # combine indices of sequences too long or with too many Ns
-
-if len(inds_to_remove) > 0: # if list not empty, remove duplicate indices
+inds_to_remove = N_above_ten + too_long # combine indices of sequences too long or with too many Ns
+#print(inds_to_remove)
+if bool(inds_to_remove) == True: # if list not empty, remove duplicate indices
     inds_to_remove = list(set(inds_to_remove))
     keys_to_remove = [list(seq_dict.keys())[q] for q in inds_to_remove] # match indices to remove to samples (dict keys)
-
     for k in keys_to_remove: # remove bad keys/values from dictionary
-        seq_dict.pop(k, None)
+        black_hole = seq_dict.pop(k, None)
+#print(seq_dict.keys())
+seq_lengths_final = [len(b) for b in list(seq_dict.values())] # get lengths of remaining sequences
+#seq_names_final = list(seq_dict.keys()) # get names of remaining sequences
 
-    seq_lengths = [len for ind,len in enumerate(seq_lengths) if ind not in inds_to_remove] # remove sequence lengths of bad indices
+longest_value = sorted(seq_lengths_final, reverse = True)[0] # get longest length
+longest_name = [x for x in list(seq_dict.keys()) if len(seq_dict[x]) == longest_value] # get sequence name of longest length
+#print(longest_name)
+if len(longest_name) > 1: # if there is more than 1 name (multiple sequences have same length), randomly choose one
+    longest_name = random.choice(longest_name)
+
+longest_name = re.search("uce.+_contigs", str(longest_name)).group(0) # reformat sequence name
+
+print(">" + longest_name + "\n" + seq_dict[longest_name]) # print sequence in fasta format
+
     
 
