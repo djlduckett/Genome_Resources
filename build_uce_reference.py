@@ -37,6 +37,10 @@ seq_index = SeqIO.index(infile, 'fasta')
 #seq_dict = SeqIO.to_dict(SeqIO.parse(infile, "fasta"))
 
 seq_lengths, Ns, seqs = map(list, zip(*[get_seq_stats(seq_index, name) for name in seq_names])) # get lists of lengths, number of ns, and sequences
+
+#dup_inds = [idx for idx,val in enumerate(seq_names) if val in seq_names[:idx]] # get indices of any duplicates
+#seq_names = [idx for val,idx in enumerate(seq_names) if val not in dup_inds] # remove duplicate sequence names
+#seqs = [idx for val,idx in enumerate(seqs) if val not in dup_inds] # remove duplicate sequences
 seq_dict = dict(zip(seq_names, seqs)) # create dictionary with sequence names as keys and sequences as values
 
 percent_N = [N / s for N, s in zip(Ns, seq_lengths)] # calculate percent N for each sequence
